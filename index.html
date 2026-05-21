@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07071a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EduTrack">
+<meta name="description" content="EduTrack — The Ultimate Teacher Companion">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>EduTrack — Teacher Portal</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07071a;--bg2:#0d0d23;--bg3:#13132f;--bg4:#19193b;--bg5:#20204a;
+  --p1:#7c6af7;--p2:#9d8fff;--p3:#bdb5ff;--p4:#ddd9ff;
+  --teal:#00e5c3;--teal2:#4fffd8;--teal3:#a0fff0;
+  --gold:#f5a623;--gold2:#ffc462;
+  --rose:#ff5f7e;--rose2:#ff8fa3;
+  --green:#4ade80;--green2:#86efac;
+  --text:#f0f0fa;--text2:#9090b8;--text3:#55557a;
+  --border:rgba(124,106,247,0.14);--border2:rgba(124,106,247,0.28);--border3:rgba(124,106,247,0.5);
+  --r:12px;--r2:18px;--r3:24px;
+  --sh:0 8px 40px rgba(0,0,0,0.5);
+}
+body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── BACKGROUND ── */
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.ab{position:absolute;border-radius:50%;filter:blur(90px);animation:drift 14s ease-in-out infinite alternate}
+.ab1{width:700px;height:700px;background:var(--p1);opacity:.1;top:-250px;left:-200px}
+.ab2{width:550px;height:550px;background:var(--teal);opacity:.08;bottom:-200px;right:-150px;animation-duration:11s}
+.ab3{width:400px;height:400px;background:var(--gold);opacity:.05;top:35%;left:38%;animation-duration:17s}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(50px,35px) scale(1.12)}}
+.gridbg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(124,106,247,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(124,106,247,.025) 1px,transparent 1px);
+  background-size:56px 56px}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem}
+.spinner{width:48px;height:48px;border:3px solid var(--border2);border-top-color:var(--p1);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{color:var(--text2);font-size:.9rem;font-weight:500}
+.load-logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--p1),var(--teal));display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 40px rgba(124,106,247,.5);margin-bottom:.5rem}
+
+/* ── AUTH SHELL ── */
+#auth-shell{position:relative;z-index:10;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.auth-wrap{width:100%;max-width:500px}
+.auth-logo{display:flex;align-items:center;gap:1rem;justify-content:center;margin-bottom:2.5rem}
+.logo-orb{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--p1),var(--teal));display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 40px rgba(124,106,247,.5),0 0 80px rgba(0,229,195,.15);flex-shrink:0}
+.logo-txt h1{font-size:1.9rem;font-weight:800;letter-spacing:-.04em;background:linear-gradient(135deg,#fff 20%,var(--p3) 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-txt p{font-size:.68rem;color:var(--text3);font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-top:2px}
+
+.glass{background:rgba(13,13,35,.9);border:1px solid var(--border2);border-radius:var(--r3);padding:2.5rem 2.25rem;box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.06);position:relative;overflow:hidden;backdrop-filter:blur(24px)}
+.glass::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--p2) 35%,var(--teal) 65%,transparent)}
+
+.scr{display:none;animation:fadeUp .4s cubic-bezier(.16,1,.3,1)}
+.scr.on{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.scr-hd h2{font-size:1.4rem;font-weight:800;letter-spacing:-.025em;margin-bottom:.3rem}
+.scr-hd p{font-size:.85rem;color:var(--text2);line-height:1.65;margin-bottom:1.75rem}
+
+/* GATE */
+.gate-shield{font-size:4rem;text-align:center;margin-bottom:.75rem;animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.gate-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);color:var(--gold2);border-radius:20px;padding:.35rem 1rem;font-size:.78rem;font-weight:700;margin-bottom:1.25rem;width:100%;justify-content:center}
+
+/* STEPS */
+.steps{display:flex;align-items:center;margin-bottom:2rem}
+.snode{display:flex;align-items:center;flex:1}
+.snc{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;flex-shrink:0;transition:all .35s}
+.snc.done{background:var(--teal);color:#000;box-shadow:0 0 16px rgba(0,229,195,.4)}
+.snc.act{background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;box-shadow:0 0 20px rgba(124,106,247,.6)}
+.snc.idle{background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
+.sl{flex:1;height:2px;background:var(--bg4);margin:0 6px;border-radius:1px;transition:background .35s}
+.sl.done{background:linear-gradient(90deg,var(--teal),var(--p1))}
+
+/* FIELDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.875rem}
+.field{display:flex;flex-direction:column;gap:.38rem;margin-bottom:.875rem}
+.field label{font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:.4rem}
+.opt-tag{font-size:.6rem;font-weight:600;color:var(--text3);background:var(--bg4);padding:.1rem .4rem;border-radius:5px;text-transform:lowercase;letter-spacing:0}
+.iw{position:relative}
+.inp{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:.8rem 1rem;color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s,background .15s;font-family:inherit}
+.inp:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(124,106,247,.16);background:var(--bg4)}
+.inp::placeholder{color:var(--text3)}
+.inp.pr{padding-right:3rem}
+.eye{position:absolute;right:.875rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:.95rem;padding:0;line-height:1;transition:color .2s}
+.eye:hover{color:var(--text2)}
+.str-row{display:flex;gap:4px;margin-top:.45rem}
+.ss{flex:1;height:3px;border-radius:2px;background:var(--bg4);transition:background .3s}
+.str-hint{font-size:.7rem;margin-top:.25rem;color:var(--text3);transition:color .3s}
+
+/* OTP */
+.otp-g{display:flex;gap:.55rem;justify-content:center;margin:1.5rem 0}
+.ob{width:54px;height:64px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r2);text-align:center;font-size:1.5rem;font-weight:800;font-family:'Courier New',monospace;color:var(--text);outline:none;transition:all .2s;caret-color:var(--p2)}
+.ob:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(124,106,247,.18);transform:translateY(-3px)}
+.ob.ok{border-color:var(--teal);color:var(--teal2)}
+.otp-card{background:linear-gradient(135deg,rgba(0,229,195,.07),rgba(124,106,247,.07));border:1px solid rgba(0,229,195,.22);border-radius:var(--r2);padding:1rem 1.25rem;text-align:center;margin-bottom:1.25rem}
+.otp-card .olbl{font-size:.68rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem}
+.otp-card .ocode{font-size:2.2rem;font-weight:800;font-family:'Courier New',monospace;letter-spacing:.3em;color:var(--teal2)}
+
+/* AVATARS */
+.av-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem;margin-bottom:.5rem}
+.av{aspect-ratio:1;border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;background:var(--bg3);transition:all .2s}
+.av:hover{border-color:var(--p2);transform:scale(1.08) translateY(-2px)}
+.av.picked{border-color:var(--p1);background:rgba(124,106,247,.2);box-shadow:0 0 14px rgba(124,106,247,.35)}
+
+/* BUTTONS */
+.bmain{width:100%;padding:.88rem;border-radius:var(--r);border:none;cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:800;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.25rem}
+.bpur{background:linear-gradient(135deg,var(--p1),#5040d0);color:#fff;box-shadow:0 4px 24px rgba(124,106,247,.4)}
+.bpur:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,106,247,.5)}
+.bpur:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.bghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2)}
+.bghost:hover{background:var(--bg3);color:var(--text)}
+.brow{display:flex;gap:.75rem;margin-top:.25rem}
+.brow .bghost{flex:.42}
+.brow .bpur{flex:1}
+
+/* GOOGLE BTN */
+
+
+
+
+/* ALERTS */
+.err-box{background:rgba(255,95,126,.1);border:1px solid rgba(255,95,126,.3);border-radius:var(--r);padding:.72rem 1rem;font-size:.82rem;color:var(--rose2);display:none;align-items:flex-start;gap:.625rem;margin-bottom:.875rem}
+.err-box.on{display:flex}
+.ok-box{background:rgba(0,229,195,.08);border:1px solid rgba(0,229,195,.25);border-radius:var(--r);padding:.72rem 1rem;font-size:.82rem;color:var(--teal2);display:none;align-items:flex-start;gap:.625rem;margin-bottom:.875rem}
+.ok-box.on{display:flex}
+.divider{display:flex;align-items:center;gap:.875rem;margin:1rem 0;color:var(--text3);font-size:.78rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-sw{text-align:center;font-size:.84rem;color:var(--text2);margin-top:1.25rem}
+.auth-sw a{color:var(--p3);font-weight:700;cursor:pointer;text-decoration:none}
+.auth-sw a:hover{color:var(--p2)}
+
+/* SUCCESS ORB */
+.s-orb{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--p1));display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 1.5rem;box-shadow:0 0 40px rgba(0,229,195,.4),0 0 80px rgba(124,106,247,.2);animation:pulse 2s ease-in-out infinite}
+
+/* ── MAIN APP ── */
+#app{display:none;position:relative;z-index:10;min-height:100vh}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;background:rgba(7,7,26,.93);backdrop-filter:blur(28px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;gap:1rem}
+.tlogo{display:flex;align-items:center;gap:.7rem;margin-right:auto}
+.tlorb{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--p1),var(--teal));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tlogo h1{font-size:1.1rem;font-weight:800;letter-spacing:-.025em}
+.vtag{font-size:.6rem;font-weight:700;color:var(--p3);background:rgba(124,106,247,.18);border:1px solid rgba(124,106,247,.28);padding:.15rem .5rem;border-radius:20px;margin-left:.25rem}
+.upill{display:flex;align-items:center;gap:.6rem;background:var(--bg3);border:1px solid var(--border);border-radius:24px;padding:.3rem .875rem .3rem .3rem;transition:border-color .2s}
+.upill:hover{border-color:var(--border2)}
+.uav{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--teal));display:flex;align-items:center;justify-content:center;font-size:13px;overflow:hidden;flex-shrink:0}
+.uav img{width:100%;height:100%;object-fit:cover}
+.uname{font-size:.8rem;font-weight:700;color:var(--text)}
+.sobtn{padding:.4rem .875rem;border-radius:var(--r);background:rgba(255,95,126,.1);border:1px solid rgba(255,95,126,.25);color:var(--rose);font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.sobtn:hover{background:rgba(255,95,126,.2)}
+.hambtn{display:none;background:none;border:none;color:var(--text);font-size:1.3rem;cursor:pointer;padding:.25rem}
+
+/* SIDEBAR */
+.layout{display:flex;padding-top:64px}
+.sidebar{position:fixed;left:0;top:64px;bottom:0;width:228px;background:var(--bg2);border-right:1px solid var(--border);padding:1.25rem .875rem;z-index:100;display:flex;flex-direction:column;transition:transform .3s}
+.navbtn{display:flex;align-items:center;gap:.75rem;padding:.72rem .9rem;border-radius:var(--r);cursor:pointer;transition:all .2s;color:var(--text2);font-size:.875rem;font-weight:700;border:1.5px solid transparent;margin-bottom:.2rem;user-select:none}
+.navbtn:hover{background:var(--bg3);color:var(--text)}
+.navbtn.on{background:rgba(124,106,247,.14);color:var(--p3);border-color:var(--border)}
+.ni{font-size:1rem;width:20px;text-align:center}
+.navfoot{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)}
+.navfoot p{font-size:.68rem;color:var(--text3);line-height:1.7;padding:0 .25rem;margin-bottom:.75rem}
+
+/* MAIN */
+.main{margin-left:228px;padding:2rem;min-height:calc(100vh - 64px)}
+.tab{display:none}
+.tab.on{display:block;animation:fadeUp .3s ease}
+
+/* PAGE HEADER */
+.ph{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:2rem}
+.ph-left h2{font-size:1.65rem;font-weight:800;letter-spacing:-.03em}
+.ph-left p{color:var(--text2);font-size:.875rem;margin-top:.25rem}
+.ph-actions{display:flex;gap:.625rem;flex-wrap:wrap;align-items:center}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1rem;margin-bottom:1.75rem}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.25rem 1.4rem;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:default}
+.scard:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.scard::after{content:attr(data-ic);position:absolute;right:.875rem;top:50%;transform:translateY(-50%);font-size:2.4rem;opacity:.1;pointer-events:none}
+.stop{height:3px;position:absolute;top:0;left:0;right:0;border-radius:var(--r2) var(--r2) 0 0}
+.slbl{font-size:.68rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+.sval{font-size:2.3rem;font-weight:800;font-family:'Courier New',monospace;letter-spacing:-.02em;line-height:1}
+.sc-g .stop{background:linear-gradient(90deg,var(--teal),var(--teal2))}.sc-g .sval{color:var(--teal)}
+.sc-s .stop{background:linear-gradient(90deg,var(--text3),var(--text2))}.sc-s .sval{color:var(--text2)}
+.sc-o .stop{background:linear-gradient(90deg,var(--gold),var(--gold2))}.sc-o .sval{color:var(--gold)}
+.sc-r .stop{background:linear-gradient(90deg,var(--rose),var(--rose2))}.sc-r .sval{color:var(--rose)}
+
+/* DEADLINE BANNER */
+.dlb{border-radius:var(--r2);padding:1.1rem 1.5rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;border:1px solid;transition:all .3s}
+.dlb-safe{background:rgba(0,229,195,.06);border-color:rgba(0,229,195,.22)}
+.dlb-warn{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.22)}
+.dlb-danger{background:rgba(255,95,126,.06);border-color:rgba(255,95,126,.22)}
+.dlb-none{background:var(--bg2);border-color:var(--border)}
+.dlb-ic{font-size:1.75rem;flex-shrink:0}
+.dlb-title{font-size:.9rem;font-weight:700;margin-bottom:2px}
+.dlb-sub{font-size:.8rem;color:var(--text2)}
+
+/* FILTER TABS */
+.ftabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center}
+.ftab{padding:.36rem .9rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:.76rem;font-weight:700;font-family:inherit;transition:all .2s}
+.ftab:hover:not(.on){border-color:var(--border2);color:var(--text)}
+.ftab.on{background:var(--p1);border-color:var(--p1);color:#fff;box-shadow:0 2px 12px rgba(124,106,247,.35)}
+
+/* BUTTONS */
+.btn{padding:.56rem 1rem;border-radius:var(--r);border:none;cursor:pointer;font-family:inherit;font-size:.83rem;font-weight:700;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap}
+.bacc{background:linear-gradient(135deg,var(--p1),#5040d0);color:#fff;box-shadow:0 4px 14px rgba(124,106,247,.3)}
+.bacc:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,106,247,.4)}
+.bteal{background:rgba(0,229,195,.1);color:var(--teal2);border:1px solid rgba(0,229,195,.25)}
+.bteal:hover{background:rgba(0,229,195,.18)}
+.bred{background:rgba(255,95,126,.1);color:var(--rose);border:1px solid rgba(255,95,126,.2)}
+.bred:hover{background:rgba(255,95,126,.18)}
+.bgold{background:rgba(245,166,35,.1);color:var(--gold2);border:1px solid rgba(245,166,35,.2)}
+.bgold:hover{background:rgba(245,166,35,.18)}
+.bgh{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.bgh:hover{background:var(--bg3);color:var(--text)}
+.bsm{padding:.3rem .65rem;font-size:.74rem}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.5rem;margin-bottom:1.5rem}
+.clbl{font-size:.68rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem}
+
+/* TABLE */
+.twrap{overflow-x:auto;border-radius:var(--r2)}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+thead tr{background:var(--bg3)}
+th{padding:.875rem 1rem;text-align:left;font-size:.68rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.82rem 1rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(124,106,247,.04)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .62rem;border-radius:20px;font-size:.7rem;font-weight:700;white-space:nowrap}
+.bcc{background:rgba(0,229,195,.1);color:var(--teal);border:1px solid rgba(0,229,195,.2)}
+.buc{background:rgba(144,144,184,.1);color:var(--text2);border:1px solid rgba(144,144,184,.15)}
+.bci{background:rgba(245,166,35,.1);color:var(--gold);border:1px solid rgba(245,166,35,.2)}
+.bui{background:rgba(255,95,126,.1);color:var(--rose);border:1px solid rgba(255,95,126,.2)}
+.dtag{font-family:'Courier New',monospace;font-size:.68rem;color:var(--text3);background:var(--bg3);padding:.16rem .45rem;border-radius:6px}
+
+/* COLUMN VIEW */
+.colview{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem}
+.colsec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.1rem;min-height:160px}
+.colhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.colhd h3{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em}
+.colcnt{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;font-family:'Courier New',monospace}
+.sentry{background:var(--bg3);border-radius:10px;padding:.56rem .75rem;margin-bottom:.4rem;border-left:3px solid transparent;display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;transition:background .15s}
+.sentry:hover{background:var(--bg4)}
+.se-name{font-size:.84rem;font-weight:700}
+.se-meta{font-size:.66rem;color:var(--text3);margin-top:2px;line-height:1.5}
+
+/* ATTENDANCE */
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.6rem;margin-bottom:1.25rem}
+.chip{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:.6rem .95rem;display:flex;align-items:center;gap:.625rem;cursor:pointer;transition:all .2s;user-select:none}
+.chip:hover{border-color:var(--border2);transform:translateY(-1px)}
+.chip.absent{background:rgba(255,95,126,.07);border-color:rgba(255,95,126,.3)}
+.cdot{width:9px;height:9px;border-radius:50%;background:var(--teal);flex-shrink:0;transition:all .2s}
+.chip.absent .cdot{background:var(--rose);box-shadow:0 0 8px rgba(255,95,126,.5)}
+.cname{font-size:.84rem;font-weight:700;flex:1}
+.croll{font-size:.68rem;color:var(--text3);font-family:'Courier New',monospace}
+
+/* EXCEL UPLOAD */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--r2);padding:2rem;text-align:center;transition:all .25s;cursor:pointer;background:rgba(124,106,247,.03)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--p1);background:rgba(124,106,247,.08)}
+.upload-zone .uic{font-size:2.5rem;margin-bottom:.75rem;opacity:.6}
+.upload-zone h4{font-size:.95rem;font-weight:700;margin-bottom:.35rem;color:var(--text)}
+.upload-zone p{font-size:.8rem;color:var(--text2);line-height:1.6}
+.upload-zone input[type="file"]{display:none}
+.preview-table-wrap{max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);margin-top:1rem}
+.preview-table-wrap table{font-size:.78rem}
+.preview-table-wrap th{font-size:.65rem;padding:.6rem .75rem}
+.preview-table-wrap td{padding:.6rem .75rem}
+
+/* EMAIL */
+.eprev{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;font-family:'Courier New',monospace;font-size:.76rem;color:var(--text);white-space:pre-wrap;line-height:1.9;margin-top:1rem;max-height:320px;overflow-y:auto}
+.hrtcard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;display:flex;align-items:center;gap:.9rem;margin-bottom:.65rem;transition:background .15s}
+.hrtcard:hover{background:var(--bg4)}
+.hrtav{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--p1),var(--teal));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.hrtinfo h4{font-size:.875rem;font-weight:700}
+.hrtinfo p{font-size:.74rem;color:var(--text2);margin-top:2px}
+.cpill{padding:.36rem .9rem;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.76rem;font-weight:700;font-family:inherit;transition:all .2s}
+.cpill.on{background:rgba(124,106,247,.18);border-color:var(--p1);color:var(--p3)}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem 2rem;color:var(--text2)}
+.eic{font-size:2.75rem;margin-bottom:.875rem;opacity:.35}
+.empty h3{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:.4rem}
+.empty p{font-size:.83rem;max-width:260px;margin:0 auto;line-height:1.65}
+
+/* MODAL */
+.mbg{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem}
+.mbg.open{display:flex;animation:fi .2s ease}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.mbox{background:rgba(13,13,35,.96);border:1px solid var(--border2);border-radius:var(--r3);padding:2rem;max-width:520px;width:100%;animation:fadeUp .3s ease;position:relative;overflow:hidden;backdrop-filter:blur(24px);max-height:90vh;overflow-y:auto}
+.mbox::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--p2) 35%,var(--teal) 65%,transparent)}
+.mbox h3{font-size:1.2rem;font-weight:800;margin-bottom:1.25rem}
+.mact{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem}
+
+/* TOAST */
+#toast{position:fixed;bottom:2rem;right:2rem;z-index:999;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:.875rem 1.25rem;color:var(--text);font-size:.875rem;opacity:0;transform:translateY(10px);transition:all .3s;display:flex;align-items:center;gap:.5rem;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:240px;max-width:340px}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* FORM CONTROLS */
+.fc{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);padding:.7rem 1rem;color:var(--text);font-family:inherit;font-size:.875rem;outline:none;transition:border-color .2s}
+.fc:focus{border-color:var(--p2)}
+.fc::placeholder{color:var(--text3)}
+select.fc{cursor:pointer}
+textarea.fc{resize:vertical;min-height:86px;line-height:1.6}
+.fg{display:flex;flex-direction:column;gap:.38rem}
+.fg label{font-size:.68rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em}
+.frow{display:flex;gap:.875rem;flex-wrap:wrap;margin-bottom:1rem}
+.frow .fg{flex:1;min-width:160px}
+
+/* PROGRESS */
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px var(--teal);display:inline-block;margin-left:.4rem;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--bg5)}
+
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);position:fixed}
+  .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.4)}
+  .main{margin-left:0;padding:1rem;padding-top:4.5rem}
+  .sgrid{grid-template-columns:1fr 1fr}
+  .g2{grid-template-columns:1fr}
+  .ob{width:42px;height:54px;font-size:1.2rem}
+  .hambtn{display:flex}
+  .sobtn span{display:none}
+  .mobbar{position:fixed;top:64px;left:0;right:0;z-index:50;padding:.65rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+}
+@media(min-width:769px){.mobbar{display:none}}
+</style>
+</head>
+<body>
+<div class="aurora"><div class="ab ab1"></div><div class="ab ab2"></div><div class="ab ab3"></div></div>
+<div class="gridbg"></div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-logo">📚</div>
+  <div class="spinner"></div>
+  <p>Loading EduTrack...</p>
+</div>
+
+<!-- ════════════ AUTH ════════════ -->
+<div id="auth-shell" style="display:none">
+<div class="auth-wrap">
+  <div class="auth-logo">
+    <div class="logo-orb">📚</div>
+    <div class="logo-txt"><h1>EduTrack</h1><p>The Teacher's Companion</p></div>
+  </div>
+  <div class="glass">
+
+    <!-- GATE -->
+    <div class="scr on" id="scr-gate">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div class="gate-shield">🛡️</div>
+        <div class="gate-badge">⚠️ Restricted — Teachers Only</div>
+        <p style="font-size:.85rem;color:var(--text2);line-height:1.7">This portal is restricted to authorized school staff. Enter the access code issued by your school administrator to continue.</p>
+      </div>
+      <div class="err-box" id="gate-err"><span>⚠️</span><span id="gate-msg">Incorrect access code. Please try again.</span></div>
+      <div class="field">
+        <label>🔑 School Access Code</label>
+        <div class="iw">
+          <input type="password" class="inp pr" id="gate-inp" placeholder="Enter your access code" onkeydown="if(event.key==='Enter')checkGate()">
+          <button class="eye" onclick="togglePw('gate-inp',this)">👁</button>
+        </div>
+      </div>
+      <button class="bmain bpur" onclick="checkGate()">Verify Access →</button>
+      <p style="text-align:center;font-size:.72rem;color:var(--text3);margin-top:1rem;line-height:1.6">Don't have a code? Contact your school administrator.</p>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="scr" id="scr-login">
+      <div class="scr-hd"><h2>Welcome back 👋</h2><p>Sign in to your EduTrack teacher account.</p></div>
+      <div class="err-box" id="l-err"><span>⚠️</span><span id="l-msg"></span></div>
+      <div class="field"><label>📧 Email Address</label><input type="email" class="inp" id="l-email" placeholder="you@school.edu" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>🔒 Password</label><div class="iw"><input type="password" class="inp pr" id="l-pass" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"><button class="eye" onclick="togglePw('l-pass',this)">👁</button></div></div>
+      <button class="bmain bpur" id="lbtn" onclick="doLogin()">Sign In →</button>
+
+      <div class="auth-sw">No account? <a onclick="show('scr-r1')">Create one</a></div>
+    </div>
+
+    <!-- REGISTER STEP 1 -->
+    <div class="scr" id="scr-r1">
+      <div class="steps">
+        <div class="snode"><div class="snc act">1</div><div class="sl"></div></div>
+        <div class="snode"><div class="snc idle">2</div><div class="sl"></div></div>
+        <div class="snode"><div class="snc idle">3</div></div>
+      </div>
+      <div class="scr-hd"><h2>Create your account ✨</h2><p>Step 1 of 3 — Personal details</p></div>
+      <div class="err-box" id="r1-err"><span>⚠️</span><span id="r1-msg"></span></div>
+      <div class="g2">
+        <div class="field"><label>👤 Full Name <span style="color:var(--rose)">*</span></label><input type="text" class="inp" id="r-name" placeholder="e.g. Sunita Verma"></div>
+        <div class="field"><label>🎂 Date of Birth <span style="color:var(--rose)">*</span></label><input type="date" class="inp" id="r-dob"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>🪪 Staff No. <span class="opt-tag">optional</span></label><input type="text" class="inp" id="r-admno" placeholder="e.g. TCH-042"></div>
+        <div class="field"><label>📱 Mobile <span style="color:var(--rose)">*</span></label><input type="tel" class="inp" id="r-mobile" placeholder="10-digit" maxlength="10"></div>
+      </div>
+      <div class="field"><label>🎭 Choose Your Avatar</label><div class="av-grid" id="av-grid"></div></div>
+      <button class="bmain bpur" onclick="regStep1()">Continue →</button>
+      <div class="auth-sw" style="margin-top:.875rem">Already have an account? <a onclick="show('scr-login')">Sign in</a></div>
+    </div>
+
+    <!-- REGISTER STEP 2 -->
+    <div class="scr" id="scr-r2">
+      <div class="steps">
+        <div class="snode"><div class="snc done">✓</div><div class="sl done"></div></div>
+        <div class="snode"><div class="snc act">2</div><div class="sl"></div></div>
+        <div class="snode"><div class="snc idle">3</div></div>
+      </div>
+      <div class="scr-hd"><h2>Secure your account 🔐</h2><p>Step 2 of 3 — Set your login credentials</p></div>
+      <div class="err-box" id="r2-err"><span>⚠️</span><span id="r2-msg"></span></div>
+      <div class="field"><label>📧 Email <span style="color:var(--rose)">*</span></label><input type="email" class="inp" id="r-email" placeholder="you@school.edu"></div>
+      <div class="field"><label>🔒 Password <span style="color:var(--rose)">*</span></label><div class="iw"><input type="password" class="inp pr" id="r-pass" placeholder="Min. 8 characters" oninput="checkStr()"><button class="eye" onclick="togglePw('r-pass',this)">👁</button></div><div class="str-row"><div class="ss" id="ss1"></div><div class="ss" id="ss2"></div><div class="ss" id="ss3"></div><div class="ss" id="ss4"></div></div><div class="str-hint" id="str-hint">Enter a password</div></div>
+      <div class="field"><label>🔒 Confirm Password <span style="color:var(--rose)">*</span></label><div class="iw"><input type="password" class="inp pr" id="r-pass2" placeholder="Repeat your password"><button class="eye" onclick="togglePw('r-pass2',this)">👁</button></div></div>
+      <div class="brow"><button class="bmain bghost" onclick="show('scr-r1')">← Back</button><button class="bmain bpur" onclick="regStep2()">Continue →</button></div>
+    </div>
+
+    <!-- REGISTER STEP 3 OTP -->
+    <div class="scr" id="scr-r3">
+      <div class="steps">
+        <div class="snode"><div class="snc done">✓</div><div class="sl done"></div></div>
+        <div class="snode"><div class="snc done">✓</div><div class="sl done"></div></div>
+        <div class="snode"><div class="snc act">3</div></div>
+      </div>
+      <div class="scr-hd"><h2>Verify it's you 🛡️</h2><p>Enter the 6-digit code below to complete your registration.</p></div>
+      <div class="otp-card"><div class="olbl">Your Verification Code</div><div class="ocode" id="otp-display">------</div></div>
+      <div class="otp-g" id="otp-g"></div>
+      <div class="err-box" id="otp-err"><span>⚠️</span><span>Incorrect code. Please try again.</span></div>
+      <div class="brow"><button class="bmain bghost" onclick="show('scr-r2')">← Back</button><button class="bmain bpur" onclick="verifyOTP()">Verify & Create Account ✓</button></div>
+      <div class="auth-sw" style="margin-top:.875rem"><a onclick="generateOTP()">↻ Generate new code</a></div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="scr" id="scr-done">
+      <div style="text-align:center;padding:1.25rem 0">
+        <div class="s-orb">🎉</div>
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:.5rem">You're all set!</h2>
+        <p style="color:var(--text2);font-size:.875rem;margin-bottom:1.75rem;line-height:1.7">Your EduTrack account is created and synced to the cloud. Sign in to start using the app.</p>
+        <button class="bmain bpur" onclick="show('scr-login')">Sign In to Continue →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><span id="t-ic">✅</span>&nbsp;<span id="t-msg">Saved!</span></div>
+
+<!-- ════════ MODALS ════════ -->
+
+<!-- ADD ENTRY -->
+<div class="mbg" id="m-entry"><div class="mbox">
+<h3>➕ Add Notebook Entry</h3>
+<div class="frow"><div class="fg" style="flex:2;min-width:175px"><label>Student Name *</label><input type="text" class="fc" id="me-name" placeholder="e.g. Aryan Sharma"></div><div class="fg" style="flex:1;min-width:90px"><label>Roll No.</label><input type="text" class="fc" id="me-roll" placeholder="e.g. 24"></div></div>
+<div class="frow"><div class="fg"><label>Status *</label><select class="fc" id="me-status"><option value="cc">✅ Checked & Complete</option><option value="uc">⬜ Unchecked</option><option value="ci">⚠️ Checked but Incomplete</option><option value="ui">❌ Unchecked & Incomplete</option></select></div><div class="fg"><label>Subject / Class</label><input type="text" class="fc" id="me-subj" placeholder="e.g. 9B — Maths"></div></div>
+<div class="fg" style="margin-bottom:.5rem"><label>Remarks</label><input type="text" class="fc" id="me-rem" placeholder="e.g. Missing pages 12–15"></div>
+<div class="mact"><button class="btn bgh" onclick="closeM('m-entry')">Cancel</button><button class="btn bacc" onclick="saveEntry()">Save Entry</button></div>
+</div></div>
+
+<!-- SET DEADLINE -->
+<div class="mbg" id="m-dl"><div class="mbox">
+<h3>📅 Set Submission Deadline</h3>
+<p style="color:var(--text2);font-size:.85rem;margin-bottom:1.25rem;line-height:1.6">Set a deadline by which students must submit their notebooks. A live countdown will be shown.</p>
+<div class="fg" style="margin-bottom:1rem"><label>Deadline Date *</label><input type="date" class="fc" id="dl-date"></div>
+<div class="fg" style="margin-bottom:.5rem"><label>Label</label><input type="text" class="fc" id="dl-label" placeholder="e.g. Unit Test Submission"></div>
+<div class="mact"><button class="btn bgh" onclick="closeM('m-dl')">Cancel</button><button class="btn bacc" onclick="saveDeadline()">Set Deadline</button></div>
+</div></div>
+
+<!-- ADD STUDENT MANUAL -->
+<div class="mbg" id="m-student"><div class="mbox">
+<h3>👤 Add Student Manually</h3>
+<div class="frow">
+  <div class="fg" style="flex:2"><label>Full Name *</label><input type="text" class="fc" id="ms-name" placeholder="e.g. Priya Gupta"></div>
+  <div class="fg"><label>Roll No.</label><input type="text" class="fc" id="ms-roll" placeholder="e.g. 12"></div>
+</div>
+<div class="frow">
+  <div class="fg"><label>Class *</label><input type="text" class="fc" id="ms-class" placeholder="e.g. 10A"></div>
+  <div class="fg"><label>Admission No.</label><input type="text" class="fc" id="ms-admno" placeholder="e.g. 2024012"></div>
+</div>
+<div class="mact"><button class="btn bgh" onclick="closeM('m-student')">Cancel</button><button class="btn bacc" onclick="saveStudent()">Add Student</button></div>
+</div></div>
+
+<!-- EXCEL IMPORT -->
+<div class="mbg" id="m-excel"><div class="mbox">
+<h3>📊 Import Students from Excel</h3>
+<p style="color:var(--text2);font-size:.83rem;margin-bottom:1.25rem;line-height:1.65">Upload an Excel file (.xlsx or .csv). Your sheet should have columns: <strong style="color:var(--p3)">Name, Roll No, Class, Admission No</strong> (in any order, headers required).</p>
+<div class="upload-zone" id="upload-zone" onclick="document.getElementById('xl-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+  <input type="file" id="xl-file" accept=".xlsx,.xls,.csv" onchange="handleFile(this.files[0])">
+  <div class="uic">📂</div>
+  <h4>Click to browse or drag & drop</h4>
+  <p>Supports .xlsx, .xls, .csv files<br>Headers: Name, Roll No, Class, Admission No</p>
+</div>
+<div id="xl-preview" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;margin-bottom:.5rem">
+    <div style="font-size:.78rem;font-weight:700;color:var(--teal2)" id="xl-count"></div>
+    <button class="btn bgh bsm" onclick="clearXL()">✕ Clear</button>
+  </div>
+  <div class="preview-table-wrap">
+    <table><thead><tr><th>Name</th><th>Roll</th><th>Class</th><th>Adm. No.</th></tr></thead><tbody id="xl-tbody"></tbody></table>
+  </div>
+</div>
+<div class="err-box" id="xl-err" style="margin-top:1rem"><span>⚠️</span><span id="xl-msg"></span></div>
+<div class="mact"><button class="btn bgh" onclick="closeM('m-excel')">Cancel</button><button class="btn bacc" id="xl-import-btn" style="display:none" onclick="importStudents()">Import Students →</button></div>
+</div></div>
+
+<!-- EXCEL IMPORT FOR NOTEBOOKS -->
+<div class="mbg" id="m-excel-nb"><div class="mbox">
+<h3>📊 Import Notebook Entries from Excel</h3>
+<p style="color:var(--text2);font-size:.83rem;margin-bottom:1.25rem;line-height:1.65">Upload an Excel file with columns: <strong style="color:var(--p3)">Name, Roll No, Class, Status, Subject, Remarks</strong>.<br>Status values: <span style="color:var(--teal)">cc</span> = Checked Complete, <span style="color:var(--text2)">uc</span> = Unchecked, <span style="color:var(--gold)">ci</span> = Checked Incomplete, <span style="color:var(--rose)">ui</span> = Unchecked Incomplete</p>
+<div class="upload-zone" id="upload-zone-nb" onclick="document.getElementById('xl-nb-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDropNB(event)">
+  <input type="file" id="xl-nb-file" accept=".xlsx,.xls,.csv" onchange="handleFileNB(this.files[0])">
+  <div class="uic">📂</div>
+  <h4>Click to browse or drag & drop</h4>
+  <p>Supports .xlsx, .xls, .csv files</p>
+</div>
+<div id="xl-nb-preview" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;margin-bottom:.5rem">
+    <div style="font-size:.78rem;font-weight:700;color:var(--teal2)" id="xl-nb-count"></div>
+    <button class="btn bgh bsm" onclick="clearXLNB()">✕ Clear</button>
+  </div>
+  <div class="preview-table-wrap">
+    <table><thead><tr><th>Name</th><th>Roll</th><th>Class</th><th>Status</th><th>Subject</th></tr></thead><tbody id="xl-nb-tbody"></tbody></table>
+  </div>
+</div>
+<div class="err-box" id="xl-nb-err" style="margin-top:1rem"><span>⚠️</span><span id="xl-nb-msg"></span></div>
+<div class="mact"><button class="btn bgh" onclick="closeM('m-excel-nb')">Cancel</button><button class="btn bacc" id="xl-nb-import-btn" style="display:none" onclick="importEntries()">Import Entries →</button></div>
+</div></div>
+
+<!-- ADD HRT -->
+<div class="mbg" id="m-hrt"><div class="mbox">
+<h3>🧑‍🏫 Add HRT Details</h3>
+<div class="fg" style="margin-bottom:1rem"><label>HRT Full Name *</label><input type="text" class="fc" id="mh-name" placeholder="e.g. Mrs. Sunita Verma"></div>
+<div class="fg" style="margin-bottom:1rem"><label>Email Address *</label><input type="email" class="fc" id="mh-email" placeholder="sunita@school.edu"></div>
+<div class="fg" style="margin-bottom:.5rem"><label>Class *</label><input type="text" class="fc" id="mh-class" placeholder="e.g. 10A"></div>
+<div class="mact"><button class="btn bgh" onclick="closeM('m-hrt')">Cancel</button><button class="btn bacc" onclick="saveHRT()">Add HRT</button></div>
+</div></div>
+
+<!-- ════════ MAIN APP ════════ -->
+<div id="app">
+<header class="topbar">
+  <div class="tlogo">
+    <div class="tlorb">📚</div>
+    <h1>EduTrack</h1>
+    <span class="vtag">Final</span>
+  </div>
+  <div class="upill">
+    <div class="uav" id="up-av">👩‍🏫</div>
+    <span class="uname" id="up-name">Teacher</span>
+    <span class="sync-dot" title="Synced to cloud"></span>
+  </div>
+  <button class="sobtn" onclick="logout()"><span>Sign Out</span></button>
+  <button class="hambtn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+</header>
+<div class="mobbar">
+  <button style="background:none;border:none;color:var(--text);font-size:1.25rem;cursor:pointer" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+  <span style="font-size:.9rem;font-weight:800">EduTrack</span>
+</div>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <div class="navbtn on" onclick="switchTab('notebooks')" id="nav-notebooks"><span class="ni">📓</span> Notebook Tracker</div>
+  <div class="navbtn" onclick="switchTab('attendance')" id="nav-attendance"><span class="ni">🙋</span> Attendance</div>
+  <div class="navfoot">
+    <p>All data synced to Firebase in real-time. Works on any device, any browser.</p>
+    <button class="btn bgh bsm" style="width:100%;margin-bottom:.5rem" onclick="logout()">Sign Out</button>
+  </div>
+</aside>
+<main class="main">
+
+<!-- ══ NOTEBOOKS ══ -->
+<div class="tab on" id="tab-notebooks">
+<div class="ph">
+  <div class="ph-left"><h2>📓 Notebook Tracker</h2><p>Track submission status across 4 categories. Dates logged automatically.</p></div>
+  <div class="ph-actions">
+    <button class="btn bgold bsm" onclick="openM('m-excel-nb')">📊 Import from Excel</button>
+    <button class="btn bteal bsm" onclick="openM('m-dl')">📅 Set Deadline</button>
+    <button class="btn bacc" onclick="openM('m-entry')">+ Add Entry</button>
+  </div>
+</div>
+
+<div id="dlbanner" class="dlb dlb-none">
+  <div class="dlb-ic">📅</div>
+  <div><div class="dlb-title" id="dlb-t">No deadline set</div><div class="dlb-sub" id="dlb-s">Click "Set Deadline" to add a submission date.</div></div>
+</div>
+
+<div class="sgrid">
+  <div class="sc-g scard" data-ic="✅"><div class="stop"></div><div class="slbl">Checked & Complete</div><div class="sval" id="st-cc">0</div></div>
+  <div class="sc-s scard" data-ic="⬜"><div class="stop"></div><div class="slbl">Unchecked</div><div class="sval" id="st-uc">0</div></div>
+  <div class="sc-o scard" data-ic="⚠️"><div class="stop"></div><div class="slbl">Checked, Incomplete</div><div class="sval" id="st-ci">0</div></div>
+  <div class="sc-r scard" data-ic="❌"><div class="stop"></div><div class="slbl">Unchecked & Incomplete</div><div class="sval" id="st-ui">0</div></div>
+</div>
+
+<div class="card" style="padding:1rem 1.5rem;margin-bottom:1rem">
+  <div class="clbl" style="margin-bottom:.5rem">Filter by Class</div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+    <button class="cpill on" id="nb-cls-all" onclick="filterByClass('all',this)">All Classes</button>
+    <div id="nb-cls-pills" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+  </div>
+</div>
+
+<div class="ftabs">
+  <button class="ftab on" onclick="filt('all',this)">All</button>
+  <button class="ftab" onclick="filt('cc',this)">✅ Complete</button>
+  <button class="ftab" onclick="filt('uc',this)">⬜ Unchecked</button>
+  <button class="ftab" onclick="filt('ci',this)">⚠️ Checked Incomplete</button>
+  <button class="ftab" onclick="filt('ui',this)">❌ Unchecked Incomplete</button>
+  <div style="margin-left:auto;display:flex;gap:.4rem">
+    <button class="btn bgh bsm" id="vt" onclick="setView('table')" title="Table view">☰</button>
+    <button class="btn bgh bsm" id="vc" onclick="setView('col')" title="Column view">⊞</button>
+  </div>
+</div>
+
+<div id="v-table" class="card" style="padding:0;overflow:hidden">
+  <div class="twrap"><table>
+    <thead><tr><th>Student</th><th>Roll</th><th>Status</th><th>Subject / Class</th><th>Date Entered</th><th>Remarks</th><th></th></tr></thead>
+    <tbody id="entries-body"><tr><td colspan="7"><div class="empty"><div class="eic">📋</div><h3>No entries yet</h3><p>Click "+ Add Entry" to log your first notebook submission.</p></div></td></tr></tbody>
+  </table></div>
+</div>
+
+<div id="v-col" style="display:none">
+  <div class="colview">
+    <div class="colsec"><div class="colhd" style="border-bottom-color:rgba(0,229,195,.3)"><h3 style="color:var(--teal)">✅ Checked & Complete</h3><div class="colcnt" style="background:rgba(0,229,195,.12);color:var(--teal)" id="cc-c">0</div></div><div id="col-cc"></div></div>
+    <div class="colsec"><div class="colhd" style="border-bottom-color:rgba(144,144,184,.3)"><h3 style="color:var(--text2)">⬜ Unchecked</h3><div class="colcnt" style="background:rgba(144,144,184,.1);color:var(--text2)" id="uc-c">0</div></div><div id="col-uc"></div></div>
+    <div class="colsec"><div class="colhd" style="border-bottom-color:rgba(245,166,35,.3)"><h3 style="color:var(--gold)">⚠️ Checked, Incomplete</h3><div class="colcnt" style="background:rgba(245,166,35,.12);color:var(--gold)" id="ci-c">0</div></div><div id="col-ci"></div></div>
+    <div class="colsec"><div class="colhd" style="border-bottom-color:rgba(255,95,126,.3)"><h3 style="color:var(--rose)">❌ Unchecked & Incomplete</h3><div class="colcnt" style="background:rgba(255,95,126,.12);color:var(--rose)" id="ui-c">0</div></div><div id="col-ui"></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ══ ATTENDANCE ══ -->
+<div class="tab" id="tab-attendance">
+<div class="ph">
+  <div class="ph-left"><h2>🙋 Attendance & HRT Alerts</h2><p>Mark absences and notify HRTs instantly via email.</p></div>
+  <div class="ph-actions">
+    <button class="btn bgold bsm" onclick="openM('m-excel')">📊 Import Excel</button>
+    <button class="btn bteal bsm" onclick="openM('m-student')">+ Add Student</button>
+    <button class="btn bacc bsm" onclick="openM('m-hrt')">+ Add HRT</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="clbl">Select Class</div>
+  <div id="cls-sel" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+  <div id="no-cls" style="color:var(--text2);font-size:.875rem">No classes yet — add students manually or import from Excel to get started.</div>
+</div>
+
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem">
+    <div>
+      <div class="clbl" style="margin:0">Attendance — <span id="att-cls" style="color:var(--p3)">Select a class above</span></div>
+      <div style="font-size:.7rem;color:var(--text3);margin-top:4px;font-family:'Courier New',monospace" id="att-dt"></div>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn bteal bsm" onclick="allPresent()">✅ All Present</button>
+      <button class="btn bred bsm" onclick="resetAtt()">↺ Reset</button>
+    </div>
+  </div>
+  <div class="att-grid" id="student-grid"><div style="color:var(--text2);font-size:.875rem;grid-column:1/-1">Select a class above to see students.</div></div>
+  <div id="abs-wrap" style="display:none;margin-top:1rem;padding:1rem;background:rgba(255,95,126,.06);border:1px solid rgba(255,95,126,.2);border-radius:var(--r)">
+    <div style="font-size:.74rem;font-weight:700;color:var(--rose);margin-bottom:.4rem">🔴 Absent Today:</div>
+    <div id="abs-list" style="font-size:.875rem;color:var(--text);line-height:1.8"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="clbl">✉️ Compose HRT Email</div>
+  <div class="frow">
+    <div class="fg"><label>Your Name (Sending Teacher)</label><input type="text" class="fc" id="sender" placeholder="e.g. Mr. Rahul Sharma"></div>
+    <div class="fg"><label>Select HRT</label><select class="fc" id="hrt-sel"><option value="">— Select HRT —</option></select></div>
+  </div>
+  <div class="fg" style="margin-bottom:1rem"><label>Additional Notes</label><textarea class="fc" id="email-notes" placeholder="e.g. Rohan left early due to a medical appointment..."></textarea></div>
+  <div style="display:flex;gap:.625rem;flex-wrap:wrap">
+    <button class="btn bteal" onclick="previewEmail()">👁 Preview</button>
+    <button class="btn bacc" onclick="sendEmail()">✉️ Open in Mail</button>
+    <button class="btn bgh bsm" onclick="copyEmail()">📋 Copy Text</button>
+  </div>
+  <div id="ep-wrap" style="display:none">
+    <div style="font-size:.68rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin:1rem 0 .4rem">Email Preview</div>
+    <div class="eprev" id="ep-text"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="clbl">📋 HRT Directory</div>
+  <div id="hrt-list"><div class="empty" style="padding:2rem"><div class="eic">🧑‍🏫</div><h3>No HRTs added</h3><p>Click "+ Add HRT" to save class teacher details.</p></div></div>
+</div>
+</div>
+
+</main>
+</div>
+</div>
+
+<!-- ════════ FIREBASE + LOGIC ════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp }                                                    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         onAuthStateChanged, signOut, updateProfile }                       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot }        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── CONFIG ──
+const fbApp = initializeApp({
+  apiKey:"AIzaSyCKIcXgG12HFkoC5Txi4AwJKKoPHtdfN5E",
+  authDomain:"edutrack-f75e8.firebaseapp.com",
+  projectId:"edutrack-f75e8",
+  storageBucket:"edutrack-f75e8.firebasestorage.app",
+  messagingSenderId:"1077171671306",
+  appId:"1:1077171671306:web:f2b39cb94debee65d66af3"
+});
+const auth = getAuth(fbApp);
+const db   = getFirestore(fbApp);
+
+// ── ACCESS CODE ──
+const ACCESS_CODE = "SCHOOL2025";
+let gateOK = sessionStorage.getItem('et_gate') === '1';
+
+window.checkGate = () => {
+  const v = document.getElementById('gate-inp').value.trim();
+  const e = document.getElementById('gate-err');
+  if (v.toUpperCase() === ACCESS_CODE) {
+    sessionStorage.setItem('et_gate','1'); gateOK = true; show('scr-login');
+  } else {
+    e.classList.add('on'); document.getElementById('gate-inp').value = '';
+  }
+};
+
+// ── AUTH STATE ──
+onAuthStateChanged(auth, async user => {
+  document.getElementById('loading').style.display = 'none';
+  if (user) { await initApp(user); }
+  else {
+    document.getElementById('auth-shell').style.display = 'flex';
+    show(gateOK ? 'scr-login' : 'scr-gate');
+  }
+});
+
+// ── AVATARS ──
+const AVS = ['👩‍🏫','👨‍🏫','🧑‍🏫','👩‍💼','👨‍💼','🧑‍💼','👩‍🔬','👨‍🔬','🧑‍🎓','👩‍🎓','👨‍🎓','🦸'];
+let pickedAv = AVS[0];
+const ag = document.getElementById('av-grid');
+AVS.forEach(a => {
+  const d = document.createElement('div'); d.className='av'+(a===pickedAv?' picked':''); d.textContent=a;
+  d.onclick = () => { document.querySelectorAll('.av').forEach(x=>x.classList.remove('picked')); d.classList.add('picked'); pickedAv=a; };
+  ag.appendChild(d);
+});
+
+// ── OTP ──
+let OTP = '';
+window.generateOTP = () => {
+  OTP = String(Math.floor(100000+Math.random()*900000));
+  document.getElementById('otp-display').textContent = OTP;
+  document.querySelectorAll('.ob').forEach(b => { b.value=''; b.classList.remove('ok'); });
+};
+const og = document.getElementById('otp-g');
+for (let i=0;i<6;i++) {
+  const b = document.createElement('input'); b.type='text'; b.maxLength=1; b.className='ob'; b.dataset.i=i;
+  b.addEventListener('input', e => {
+    const v=e.target.value.replace(/\D/g,''); e.target.value=v;
+    if(v){b.classList.add('ok');const nx=og.querySelector('[data-i="'+(i+1)+'"]');if(nx)nx.focus();}
+    else b.classList.remove('ok');
+  });
+  b.addEventListener('keydown', e => {
+    if(e.key==='Backspace'&&!b.value){const pv=og.querySelector('[data-i="'+(i-1)+'"]');if(pv){pv.value='';pv.classList.remove('ok');pv.focus();}}
+  });
+  og.appendChild(b);
+}
+
+// ── UTILS ──
+window.show = id => { document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on')); document.getElementById(id).classList.add('on'); };
+window.togglePw = (id,btn) => { const i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; btn.textContent=i.type==='password'?'👁':'🙈'; };
+window.checkStr = () => {
+  const pw=document.getElementById('r-pass').value;
+  const segs=[1,2,3,4].map(i=>document.getElementById('ss'+i));
+  const hint=document.getElementById('str-hint');
+  let sc=0;if(pw.length>=8)sc++;if(/[A-Z]/.test(pw))sc++;if(/[0-9]/.test(pw))sc++;if(/[^A-Za-z0-9]/.test(pw))sc++;
+  const c=['','#ff5f7e','#f5a623','#00e5c3','#7c6af7'];
+  const l=['Enter a password','Weak','Fair','Good','Strong 💪'];
+  segs.forEach((s,i)=>{s.style.background=i<sc?c[sc]:'var(--bg4)';});
+  hint.textContent=l[sc];hint.style.color=c[sc]||'var(--text3)';
+};
+
+// ── REGISTRATION ──
+let RD = {};
+window.regStep1 = () => {
+  const name=document.getElementById('r-name').value.trim();
+  const dob=document.getElementById('r-dob').value;
+  const mobile=document.getElementById('r-mobile').value.trim();
+  const eEl=document.getElementById('r1-err');const eMsg=document.getElementById('r1-msg');
+  if(!name||!dob||!mobile){eMsg.textContent='Please fill in all required fields.';eEl.classList.add('on');return;}
+  if(!/^\d{10}$/.test(mobile)){eMsg.textContent='Mobile number must be exactly 10 digits.';eEl.classList.add('on');return;}
+  eEl.classList.remove('on');
+  RD={name,dob,admno:document.getElementById('r-admno').value.trim(),mobile,avatar:pickedAv};
+  show('scr-r2');
+};
+window.regStep2 = () => {
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const pass2=document.getElementById('r-pass2').value;
+  const eEl=document.getElementById('r2-err');const eMsg=document.getElementById('r2-msg');
+  if(!email||!pass||!pass2){eMsg.textContent='Please fill in all fields.';eEl.classList.add('on');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){eMsg.textContent='Enter a valid email address.';eEl.classList.add('on');return;}
+  if(pass.length<8){eMsg.textContent='Password must be at least 8 characters.';eEl.classList.add('on');return;}
+  if(pass!==pass2){eMsg.textContent='Passwords do not match.';eEl.classList.add('on');return;}
+  eEl.classList.remove('on'); RD.email=email; RD.pass=pass;
+  generateOTP(); show('scr-r3');
+};
+window.verifyOTP = async () => {
+  const entered=[...document.querySelectorAll('.ob')].map(b=>b.value).join('');
+  const eEl=document.getElementById('otp-err');
+  if(entered.length<6||entered!==OTP){
+    eEl.classList.add('on');
+    document.querySelectorAll('.ob').forEach(b=>{b.style.borderColor='var(--rose)';setTimeout(()=>b.style.borderColor='',700);});
+    return;
+  }
+  eEl.classList.remove('on');
+  try {
+    const cred = await createUserWithEmailAndPassword(auth,RD.email,RD.pass);
+    await updateProfile(cred.user,{displayName:RD.name});
+    await setDoc(doc(db,'teachers',cred.user.uid),{
+      name:RD.name,dob:RD.dob,admno:RD.admno,mobile:RD.mobile,avatar:RD.avatar,email:RD.email,
+      data:{entries:[],students:[],hrts:[],deadline:null,deadlineLabel:''}
+    });
+    show('scr-done');
+  } catch(e){ toast('Registration failed: '+e.message,'❌'); }
+};
+
+// ── LOGIN ──
+window.doLogin = async () => {
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const eEl=document.getElementById('l-err');const eMsg=document.getElementById('l-msg');
+  const btn=document.getElementById('lbtn');
+  if(!email||!pass){eMsg.textContent='Please enter your email and password.';eEl.classList.add('on');return;}
+  btn.disabled=true;btn.textContent='Signing in...';
+  try {
+    await signInWithEmailAndPassword(auth,email,pass);
+  } catch(e){
+    eMsg.textContent='Incorrect email or password. Please try again.';
+    eEl.classList.add('on');btn.disabled=false;btn.textContent='Sign In →';
+  }
+};
+
+window.logout = async () => { if(unsub)unsub(); await signOut(auth); location.reload(); };
+
+// ── APP STATE ──
+let CU=null, D={entries:[],students:[],hrts:[],deadline:null,deadlineLabel:'',selCls:null,filter:'all',view:'table'}, unsub=null;
+
+async function initApp(user) {
+  CU=user;
+  document.getElementById('auth-shell').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('up-name').textContent=(user.displayName||'Teacher').split(' ')[0];
+  if(user.photoURL){document.getElementById('up-av').innerHTML=`<img src="${user.photoURL}" alt="">`;}
+
+  const ref=doc(db,'teachers',user.uid);
+  const snap=await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref,{name:user.displayName||'Teacher',email:user.email,avatar:'👩‍🏫',
+      data:{entries:[],students:[],hrts:[],deadline:null,deadlineLabel:''}});
+  } else {
+    const td=snap.data(); if(td.avatar&&!user.photoURL) document.getElementById('up-av').textContent=td.avatar;
+  }
+
+  if(unsub)unsub();
+  unsub=onSnapshot(ref,snap2=>{
+    if(!snap2.exists())return;
+    const d=snap2.data().data||{};
+    D.entries=d.entries||[];D.students=d.students||[];D.hrts=d.hrts||[];
+    D.deadline=d.deadline||null;D.deadlineLabel=d.deadlineLabel||'';
+    refreshAll();
+  });
+}
+
+async function saveD(){
+  if(!CU)return;
+  try{
+    await updateDoc(doc(db,'teachers',CU.uid),{
+      'data.entries':D.entries,'data.students':D.students,'data.hrts':D.hrts,
+      'data.deadline':D.deadline,'data.deadlineLabel':D.deadlineLabel
+    });
+  }catch(e){toast('Sync failed — check your connection','⚠️');}
+}
+
+// ── TAB / MODAL ──
+window.switchTab = t=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  document.getElementById('nav-'+t).classList.add('on');
+  document.getElementById('sidebar').classList.remove('open');
+  if(t==='attendance')renderAtt();
+};
+window.openM  = id=>document.getElementById(id).classList.add('open');
+window.closeM = id=>document.getElementById(id).classList.remove('open');
+document.querySelectorAll('.mbg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+window.toast = (msg,ic='✅')=>{
+  document.getElementById('t-msg').textContent=msg;document.getElementById('t-ic').textContent=ic;
+  const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);
+};
+
+// ── HELPERS ──
+const ST={cc:{label:'Checked & Complete',cls:'bcc',ic:'✅'},uc:{label:'Unchecked',cls:'buc',ic:'⬜'},ci:{label:'Checked, Incomplete',cls:'bci',ic:'⚠️'},ui:{label:'Unchecked & Incomplete',cls:'bui',ic:'❌'}};
+const CB={cc:'rgba(0,229,195,.45)',uc:'rgba(144,144,184,.35)',ci:'rgba(245,166,35,.45)',ui:'rgba(255,95,126,.45)'};
+const toDate=()=>new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const daysLeft=d=>{const t=new Date();t.setHours(0,0,0,0);const dl=new Date(d);dl.setHours(0,0,0,0);return Math.ceil((dl-t)/86400000);};
+
+// ── ENTRIES ──
+window.saveEntry = async()=>{
+  const name=document.getElementById('me-name').value.trim();if(!name){toast('Enter a student name','⚠️');return;}
+  D.entries.push({id:Date.now(),name,roll:document.getElementById('me-roll').value.trim(),status:document.getElementById('me-status').value,subject:document.getElementById('me-subj').value.trim(),remarks:document.getElementById('me-rem').value.trim(),date:toDate()});
+  await saveD();closeM('m-entry');['me-name','me-roll','me-subj','me-rem'].forEach(id=>document.getElementById(id).value='');document.getElementById('me-status').value='cc';
+  toast('Entry saved & synced ☁️');
+};
+window.delEntry=async id=>{D.entries=D.entries.filter(e=>e.id!==id);await saveD();toast('Removed','🗑️');};
+
+// ── DEADLINE ──
+window.saveDeadline=async()=>{
+  const val=document.getElementById('dl-date').value;if(!val){toast('Pick a date','⚠️');return;}
+  D.deadline=val;D.deadlineLabel=document.getElementById('dl-label').value.trim()||'Notebook Submission';
+  await saveD();closeM('m-dl');toast('Deadline set! 📅');
+};
+function updateDL(){
+  const b=document.getElementById('dlbanner'),t=document.getElementById('dlb-t'),s=document.getElementById('dlb-s');
+  if(!D.deadline){b.className='dlb dlb-none';t.textContent='No deadline set';s.textContent='Click "Set Deadline" to add a submission date.';return;}
+  const dl=daysLeft(D.deadline);
+  const df=new Date(D.deadline).toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  t.textContent=D.deadlineLabel+' — Due: '+df;
+  if(dl<0){b.className='dlb dlb-danger';s.innerHTML='<span style="color:var(--rose);font-weight:700">⚠️ Deadline passed '+Math.abs(dl)+' days ago</span>';}
+  else if(dl<=3){b.className='dlb dlb-warn';s.innerHTML='<span style="color:var(--gold);font-weight:700">⏰ '+dl+' day'+(dl!==1?'s':'')+' remaining — act fast!</span>';}
+  else{b.className='dlb dlb-safe';s.innerHTML='<span style="color:var(--teal);font-weight:700">✅ '+dl+' days remaining</span>';}
+}
+
+// ── FILTER / VIEW ──
+window.filt=(f,btn)=>{D.filter=f;document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');renderTable();};
+window.setView=v=>{
+  D.view=v;
+  document.getElementById('v-table').style.display=v==='table'?'':'none';
+  document.getElementById('v-col').style.display=v==='col'?'':'none';
+  document.getElementById('vt').style.background=v==='table'?'rgba(124,106,247,.18)':'';
+  document.getElementById('vc').style.background=v==='col'?'rgba(124,106,247,.18)':'';
+  if(v==='col')renderCols();
+};
+
+function refreshAll(){
+  updateDL();
+  updateNBClassPills();
+  ['cc','uc','ci','ui'].forEach(k=>document.getElementById('st-'+k).textContent=D.entries.filter(e=>e.status===k).length);
+  renderTable();if(D.view==='col')renderCols();
+  renderHRTList();renderHRTDrop();
+  updateNBClassPills();
+}
+
+function renderTable(){
+  const tb=document.getElementById('entries-body');
+  let list=D.entries;
+  if(D.filter!=='all')list=list.filter(e=>e.status===D.filter);
+  if(nbClassFilter!=='all')list=list.filter(e=>e.subject===nbClassFilter);
+  updateNBClassPills();
+  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="eic">📋</div><h3>No entries</h3><p>No submissions match this filter.</p></div></td></tr>';return;}
+  tb.innerHTML=list.map(e=>{const s=ST[e.status];return`<tr>
+    <td><strong>${e.name}</strong></td>
+    <td><span class="dtag">${e.roll||'—'}</span></td>
+    <td><span class="badge ${s.cls}">${s.ic} ${s.label}</span></td>
+    <td style="color:var(--text2);font-size:.82rem">${e.subject||'—'}</td>
+    <td><span class="dtag">${e.date}</span></td>
+    <td style="color:var(--text2);font-size:.82rem;max-width:160px">${e.remarks||'—'}</td>
+    <td><button class="btn bred bsm" onclick="delEntry(${e.id})">🗑</button></td>
+  </tr>`;}).join('');
+}
+
+function renderCols(){
+  ['cc','uc','ci','ui'].forEach(k=>{
+    const list=D.entries.filter(e=>e.status===k);
+    document.getElementById(k+'-c').textContent=list.length;
+    const el=document.getElementById('col-'+k);
+    if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:.75rem;text-align:center;padding:1rem">No entries</div>';return;}
+    el.innerHTML=list.map(e=>`<div class="sentry" style="border-left-color:${CB[k]}">
+      <div style="flex:1">
+        <div class="se-name">${e.name}${e.roll?` <span style="color:var(--text3);font-size:.66rem;font-family:'Courier New',monospace">#${e.roll}</span>`:''}</div>
+        <div class="se-meta">${e.subject?e.subject+' · ':''}${e.date}</div>
+        ${e.remarks?`<div class="se-meta" style="color:var(--gold2)">📝 ${e.remarks}</div>`:''}
+      </div>
+      <button class="btn bred bsm" style="padding:.18rem .4rem;font-size:.66rem;flex-shrink:0" onclick="delEntry(${e.id})">✕</button>
+    </div>`).join('');
+  });
+}
+
+// ── STUDENTS ──
+window.saveStudent=async()=>{
+  const name=document.getElementById('ms-name').value.trim();const cls=document.getElementById('ms-class').value.trim();
+  if(!name||!cls){toast('Fill in name and class','⚠️');return;}
+  D.students.push({id:Date.now(),name,class:cls,roll:document.getElementById('ms-roll').value.trim(),admno:document.getElementById('ms-admno').value.trim(),absent:false});
+  await saveD();closeM('m-student');['ms-name','ms-roll','ms-class','ms-admno'].forEach(id=>document.getElementById(id).value='');
+  renderAtt();toast('Student added & synced!');
+};
+
+// ── EXCEL IMPORT ──
+let xlData = [];
+window.handleDrop = e => {
+  e.preventDefault(); document.getElementById('upload-zone').classList.remove('drag');
+  const f=e.dataTransfer.files[0]; if(f) handleFile(f);
+};
+window.handleFile = f => {
+  if(!f)return;
+  const eEl=document.getElementById('xl-err');const eMsg=document.getElementById('xl-msg');
+  eEl.classList.remove('on');
+  const ext=f.name.split('.').pop().toLowerCase();
+  if(!['xlsx','xls','csv'].includes(ext)){eMsg.textContent='Please upload an .xlsx, .xls, or .csv file.';eEl.classList.add('on');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){eMsg.textContent='The file appears to be empty.';eEl.classList.add('on');return;}
+      // Flexible column matching
+      const map=(row,keys)=>{ for(const k of keys){const v=Object.keys(row).find(r=>r.toLowerCase().replace(/[\s_]/g,'').includes(k));if(v)return String(row[v]).trim();} return '';};
+      xlData=rows.map((r,i)=>({
+        id:Date.now()+i,
+        name:map(r,['name','fullname','studentname'])||'',
+        roll:map(r,['roll','rollno','rollnumber','sr','srno']),
+        class:map(r,['class','section','grade','std']),
+        admno:map(r,['adm','admission','admno','admissionno','admnumber']),
+        absent:false
+      })).filter(r=>r.name);
+      if(!xlData.length){eMsg.textContent='No valid student names found. Check column headers.';eEl.classList.add('on');return;}
+      renderXLPreview();
+    }catch(err){eMsg.textContent='Could not read file: '+err.message;eEl.classList.add('on');}
+  };
+  reader.readAsArrayBuffer(f);
+};
+function renderXLPreview(){
+  document.getElementById('xl-preview').style.display='';
+  document.getElementById('xl-count').textContent=`✅ ${xlData.length} students found`;
+  document.getElementById('xl-tbody').innerHTML=xlData.slice(0,50).map(r=>`<tr><td>${r.name}</td><td><span class="dtag">${r.roll||'—'}</span></td><td>${r.class||'—'}</td><td><span class="dtag">${r.admno||'—'}</span></td></tr>`).join('');
+  document.getElementById('xl-import-btn').style.display='';
+}
+window.clearXL=()=>{
+  xlData=[];document.getElementById('xl-preview').style.display='none';
+  document.getElementById('xl-import-btn').style.display='none';
+  document.getElementById('xl-err').classList.remove('on');
+  document.getElementById('xl-file').value='';
+};
+window.importStudents=async()=>{
+  if(!xlData.length)return;
+  const existing=new Set(D.students.map(s=>s.name.toLowerCase()));
+  const added=xlData.filter(s=>!existing.has(s.name.toLowerCase()));
+  D.students=[...D.students,...added];
+  await saveD();closeM('m-excel');clearXL();
+  renderAtt();toast(`Imported ${added.length} student${added.length!==1?'s':''}! ☁️`,'📊');
+};
+
+// ── ATTENDANCE ──
+function renderAtt(){
+  const classes=[...new Set(D.students.map(s=>s.class).filter(Boolean))].sort();
+  const sel=document.getElementById('cls-sel');const nc=document.getElementById('no-cls');
+  if(!classes.length){sel.innerHTML='';nc.style.display='';document.getElementById('student-grid').innerHTML='<div style="color:var(--text2);font-size:.875rem;grid-column:1/-1">Add students or import from Excel to get started.</div>';renderHRTDrop();return;}
+  nc.style.display='none';
+  sel.innerHTML=classes.map(c=>`<button class="cpill${D.selCls===c?' on':''}" onclick="selCls('${c}')">${c}</button>`).join('');
+  if(!D.selCls||!classes.includes(D.selCls))selCls(classes[0]);else renderSGrid();
+  renderHRTDrop();
+}
+window.selCls=cls=>{
+  D.selCls=cls;document.querySelectorAll('.cpill').forEach(p=>p.classList.toggle('on',p.textContent===cls));
+  document.getElementById('att-cls').textContent='Class '+cls;renderSGrid();
+};
+function renderSGrid(){
+  const sts=D.students.filter(s=>s.class===D.selCls);
+  document.getElementById('att-dt').textContent='Date: '+toDate();
+  const g=document.getElementById('student-grid');
+  if(!sts.length){g.innerHTML='<div style="color:var(--text2);font-size:.875rem;grid-column:1/-1">No students in this class.</div>';return;}
+  g.innerHTML=sts.map(s=>`<div class="chip${s.absent?' absent':''}" onclick="togAbs(${s.id})">
+    <div class="cdot"></div>
+    <span class="cname">${s.name}</span>
+    ${s.roll?`<span class="croll">${s.roll}</span>`:''}
+  </div>`).join('');
+  updateAbsWrap();
+}
+window.togAbs=async id=>{const s=D.students.find(s=>s.id===id);if(s){s.absent=!s.absent;await saveD();}renderSGrid();};
+function updateAbsWrap(){
+  const abs=D.students.filter(s=>s.class===D.selCls&&s.absent);
+  const w=document.getElementById('abs-wrap');if(!abs.length){w.style.display='none';return;}
+  w.style.display='';document.getElementById('abs-list').textContent=abs.map(s=>s.name+(s.roll?' (Roll: '+s.roll+')':'')).join(' • ');
+}
+window.allPresent=async()=>{D.students.filter(s=>s.class===D.selCls).forEach(s=>s.absent=false);await saveD();renderSGrid();toast('All marked present ✅');};
+window.resetAtt=async()=>{await allPresent();};
+
+// ── HRT ──
+window.saveHRT=async()=>{
+  const name=document.getElementById('mh-name').value.trim();const email=document.getElementById('mh-email').value.trim();const cls=document.getElementById('mh-class').value.trim();
+  if(!name||!email||!cls){toast('Fill in all HRT details','⚠️');return;}
+  D.hrts.push({id:Date.now(),name,email,class:cls});
+  await saveD();closeM('m-hrt');['mh-name','mh-email','mh-class'].forEach(id=>document.getElementById(id).value='');
+  renderHRTList();renderHRTDrop();toast('HRT added!');
+};
+window.delHRT=async id=>{D.hrts=D.hrts.filter(h=>h.id!==id);await saveD();renderHRTList();renderHRTDrop();toast('HRT removed','🗑️');};
+function renderHRTList(){
+  const l=document.getElementById('hrt-list');
+  if(!D.hrts.length){l.innerHTML='<div class="empty" style="padding:2rem"><div class="eic">🧑‍🏫</div><h3>No HRTs added</h3><p>Click "+ Add HRT" to save class teacher details.</p></div>';return;}
+  l.innerHTML=D.hrts.map(h=>`<div class="hrtcard"><div class="hrtav">🧑‍🏫</div><div class="hrtinfo" style="flex:1"><h4>${h.name}</h4><p>${h.email} · Class ${h.class}</p></div><button class="btn bred bsm" onclick="delHRT(${h.id})">🗑</button></div>`).join('');
+}
+function renderHRTDrop(){
+  document.getElementById('hrt-sel').innerHTML='<option value="">— Select HRT —</option>'+D.hrts.map(h=>`<option value="${h.email}" data-n="${h.name}">Class ${h.class} — ${h.name}</option>`).join('');
+}
+
+// ── EMAIL ──
+function buildEmail(){
+  const sender=document.getElementById('sender').value.trim()||(CU?.displayName||'A Subject Teacher');
+  const cls=D.selCls||'(Not selected)';
+  const abs=D.students.filter(s=>s.class===cls&&s.absent);
+  const notes=document.getElementById('email-notes').value.trim();
+  const hSel=document.getElementById('hrt-sel');const hName=hSel.selectedOptions[0]?.dataset?.n||'Class Teacher';
+  let body=`Dear ${hName},\n\nI am writing to inform you about the attendance in Class ${cls} for today (${toDate()}).\n\n`;
+  if(!abs.length){body+='✅ I am pleased to inform you that all students were present today.\n\n';}
+  else{
+    body+=`The following student(s) were absent today:\n\n`;
+    abs.forEach((s,i)=>body+=`  ${i+1}. ${s.name}${s.roll?' (Roll No: '+s.roll+')':''}${s.admno?' [Adm: '+s.admno+']':''}\n`);
+    body+=`\nTotal absent: ${abs.length}\n\n`;
+  }
+  if(notes){body+=`Additional Information:\n${notes}\n\n`;}
+  body+=`Kindly take necessary action as required.\n\nThank you.\n\nRegards,\n${sender}`;
+  return body;
+}
+window.previewEmail=()=>{document.getElementById('ep-text').textContent=buildEmail();document.getElementById('ep-wrap').style.display='';toast('Preview ready','👁');};
+window.sendEmail=()=>{const he=document.getElementById('hrt-sel').value;if(!he){toast('Select an HRT first','⚠️');return;}window.location.href='mailto:'+he+'?subject='+encodeURIComponent('Attendance Report — Class '+(D.selCls||'')+' — '+toDate())+'&body='+encodeURIComponent(buildEmail());};
+window.copyEmail=()=>{navigator.clipboard.writeText(buildEmail()).then(()=>toast('Email copied to clipboard! 📋'));};
+
+// ── CLASS FILTER FOR NOTEBOOKS ──
+let nbClass = 'all';
+window.filterByClass = (cls, btn) => {
+  nbClass = cls;
+  document.querySelectorAll('.cpill').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  renderTable();
+};
+function updateNBClassPills() {
+  const classes = [...new Set(D.entries.map(e => e.subject).filter(Boolean))];
+  const allClasses = [...new Set(D.students.map(s => s.class).filter(Boolean))];
+  const combined = [...new Set([...allClasses, ...classes])].sort();
+  const el = document.getElementById('nb-cls-pills');
+  if (!el) return;
+  el.innerHTML = combined.map(c => `<button class="cpill${nbClass===c?' on':''}" onclick="filterByClass('${c}',this)">${c}</button>`).join('');
+}
+
+// ── EXCEL IMPORT FOR NOTEBOOKS ──
+let xlNBData = [];
+window.handleDropNB = e => {
+  e.preventDefault(); document.getElementById('upload-zone-nb').classList.remove('drag');
+  const f = e.dataTransfer.files[0]; if(f) handleFileNB(f);
+};
+window.handleFileNB = f => {
+  if(!f) return;
+  const eEl = document.getElementById('xl-nb-err'); const eMsg = document.getElementById('xl-nb-msg');
+  eEl.classList.remove('on');
+  const ext = f.name.split('.').pop().toLowerCase();
+  if(!['xlsx','xls','csv'].includes(ext)){eMsg.textContent='Please upload an .xlsx, .xls, or .csv file.';eEl.classList.add('on');return;}
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(ev.target.result,{type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){eMsg.textContent='File appears empty.';eEl.classList.add('on');return;}
+      const map = (row,keys) => { for(const k of keys){const v=Object.keys(row).find(r=>r.toLowerCase().replace(/[\s_]/g,'').includes(k));if(v)return String(row[v]).trim();} return ''; };
+      const validStatus = ['cc','uc','ci','ui'];
+      xlNBData = rows.map((r,i) => {
+        const rawStatus = map(r,['status','type']).toLowerCase();
+        const status = validStatus.includes(rawStatus) ? rawStatus : 'uc';
+        return {
+          id: Date.now()+i,
+          name: map(r,['name','fullname','studentname'])||'',
+          roll: map(r,['roll','rollno']),
+          subject: map(r,['class','subject','section']),
+          status,
+          remarks: map(r,['remarks','remark','note','notes']),
+          date: toDate()
+        };
+      }).filter(r => r.name);
+      if(!xlNBData.length){eMsg.textContent='No valid student names found.';eEl.classList.add('on');return;}
+      renderXLNBPreview();
+    } catch(err){eMsg.textContent='Could not read file: '+err.message;eEl.classList.add('on');}
+  };
+  reader.readAsArrayBuffer(f);
+};
+function renderXLNBPreview() {
+  document.getElementById('xl-nb-preview').style.display='';
+  document.getElementById('xl-nb-count').textContent=`✅ ${xlNBData.length} entries found`;
+  const ST_LABELS={cc:'✅ Complete',uc:'⬜ Unchecked',ci:'⚠️ Incomplete',ui:'❌ Unchk+Inc'};
+  document.getElementById('xl-nb-tbody').innerHTML=xlNBData.slice(0,50).map(r=>`<tr><td>${r.name}</td><td><span class="dtag">${r.roll||'—'}</span></td><td>${r.subject||'—'}</td><td>${ST_LABELS[r.status]||r.status}</td><td style="color:var(--text2)">${r.subject||'—'}</td></tr>`).join('');
+  document.getElementById('xl-nb-import-btn').style.display='';
+}
+window.clearXLNB = () => {
+  xlNBData=[];document.getElementById('xl-nb-preview').style.display='none';
+  document.getElementById('xl-nb-import-btn').style.display='none';
+  document.getElementById('xl-nb-err').classList.remove('on');
+  document.getElementById('xl-nb-file').value='';
+};
+window.importEntries = async () => {
+  if(!xlNBData.length) return;
+  D.entries = [...D.entries, ...xlNBData];
+  await saveD(); closeM('m-excel-nb'); clearXLNB();
+  refreshAll(); toast(`Imported ${xlNBData.length} entries! ☁️`,'📊');
+};
+</script>
+
+<script>
+// ── NOTEBOOK CLASS FILTER ──
+let nbClassFilter = 'all';
+window.filterByClass = (cls, btn) => {
+  nbClassFilter = cls;
+  document.querySelectorAll('.cpill').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  renderTable();
+};
+function updateNBClassPills() {
+  const classes = [...new Set(D.entries.map(e => e.subject).filter(Boolean))];
+  const allClasses = [...new Set(D.students.map(s => s.class).filter(Boolean))];
+  const combined = [...new Set([...classes, ...allClasses])].sort();
+  const pills = document.getElementById('nb-cls-pills');
+  if (pills) pills.innerHTML = combined.map(c => `<button class="cpill${nbClassFilter===c?' on':''}" onclick="filterByClass('${c}',this)">${c}</button>`).join('');
+}
+
+// ── NOTEBOOK EXCEL IMPORT ──
+let xlNBData = [];
+window.handleDropNB = e => { e.preventDefault(); document.getElementById('upload-zone-nb').classList.remove('drag'); handleFileNB(e.dataTransfer.files[0]); };
+window.handleFileNB = f => {
+  if(!f) return;
+  const eEl=document.getElementById('xl-nb-err'); const eMsg=document.getElementById('xl-nb-msg');
+  eEl.classList.remove('on');
+  const ext=f.name.split('.').pop().toLowerCase();
+  if(!['xlsx','xls','csv'].includes(ext)){eMsg.textContent='Please upload an .xlsx, .xls, or .csv file.';eEl.classList.add('on');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){eMsg.textContent='File is empty.';eEl.classList.add('on');return;}
+      const map=(row,keys)=>{for(const k of keys){const v=Object.keys(row).find(r=>r.toLowerCase().replace(/[\s_]/g,'').includes(k));if(v)return String(row[v]).trim();}return '';};
+      const validStatus=['cc','uc','ci','ui'];
+      xlNBData=rows.map((r,i)=>({
+        id:Date.now()+i,
+        name:map(r,['name','fullname','studentname'])||'',
+        roll:map(r,['roll','rollno','rollnumber']),
+        subject:map(r,['class','subject','section','grade']),
+        status:validStatus.includes(map(r,['status']).toLowerCase())?map(r,['status']).toLowerCase():'uc',
+        remarks:map(r,['remarks','remark','note','notes']),
+        date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})
+      })).filter(r=>r.name);
+      if(!xlNBData.length){eMsg.textContent='No valid student names found.';eEl.classList.add('on');return;}
+      document.getElementById('xl-nb-count').textContent=`✅ ${xlNBData.length} entries found`;
+      document.getElementById('xl-nb-tbody').innerHTML=xlNBData.slice(0,50).map(r=>`<tr><td>${r.name}</td><td><span class="dtag">${r.roll||'—'}</span></td><td>${r.subject||'—'}</td><td><span class="dtag">${r.status}</span></td><td style="color:var(--text2);font-size:.75rem">${r.remarks||'—'}</td></tr>`).join('');
+      document.getElementById('xl-nb-preview').style.display='';
+      document.getElementById('xl-nb-import-btn').style.display='';
+    }catch(err){eMsg.textContent='Could not read file: '+err.message;eEl.classList.add('on');}
+  };
+  reader.readAsArrayBuffer(f);
+};
+window.clearXLNB=()=>{ xlNBData=[];document.getElementById('xl-nb-preview').style.display='none';document.getElementById('xl-nb-import-btn').style.display='none';document.getElementById('xl-nb-err').classList.remove('on');document.getElementById('xl-nb-file').value=''; };
+window.importEntries=async()=>{
+  if(!xlNBData.length)return;
+  D.entries=[...D.entries,...xlNBData];
+  await saveD();closeM('m-excel-nb');clearXLNB();
+  refreshAll();toast(`Imported ${xlNBData.length} entr${xlNBData.length!==1?'ies':'y'}! ☁️`,'📊');
+};
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
